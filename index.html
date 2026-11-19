@@ -83,7 +83,6 @@ kbd { font-family: var(--font-mono); font-size: 11px; padding: 1px 5px; border: 
   padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px));
   background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--line);
-  border-top: 4px solid var(--trail);
 }
 body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--paper); }
 .brand { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
@@ -191,6 +190,18 @@ textarea.field { font-family: var(--font-mono); font-size: 13px; line-height: 1.
 
 /* inside the slide deck: only the guided chapters, no Learn/Lab switch */
 .embedded .modes { display: none; }
+
+/* Explain toggle: .ex marks every explanation; hidden unless html.explain */
+html:not(.explain) .ex { display: none !important; }
+.explain-btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink-2); font-weight: 600; font-size: 14px;
+  transition: background-color .2s, color .2s, border-color .2s;
+}
+.explain-btn:hover { color: var(--ink); }
+.explain-btn[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--surface); }
+@media (max-width: 640px) { .explain-btn { padding: 7px 10px; } }
+.embedded .explain-btn { display: none; }
 /* ===== learn.css — the guided explanation. Every rule is scoped under #view-learn. =====
    Desktop: one reading column (≤ 440px) on the left, the map as a large sticky sheet on the right.
    Under 900px: the map sticks to the top (half the screen) and the text scrolls beneath it. */
@@ -396,6 +407,49 @@ textarea.field { font-family: var(--font-mono); font-size: 13px; line-height: 1.
 }
 
 #view-learn .actions .speed { flex: 1 1 200px; max-width: 280px; }
+
+/* ===== inside the slide deck (html.embedded): presentation mode =====
+   The iframe is 1600×900 CSS px on the stage. Only what the audience reads stays, sized to read from about a metre:
+   chapter tabs, the heading, the numbers, the roulette, the ants table, the update steps and the chart.
+   Buttons, sliders, formulas and every explanation (.ex) go; the presenter drives with the arrow keys. */
+.embedded .topbar { display: none; }
+.embedded #view-learn .learn { grid-template-columns: minmax(0, 600px) minmax(0, 1fr); gap: 36px; padding: 28px 32px; max-width: none; }
+.embedded #view-learn .learn-map { top: 28px; height: calc(100vh - 56px); }
+.embedded #view-learn .learn-text { min-height: calc(100vh - 56px); gap: 34px; padding-top: 0; }
+.embedded #view-learn :is(.btn, .knob, .knobs, .toggle, .table-wrap, .formula, .howto, .ch-nav, .speed, .finale > a) { display: none !important; }
+.embedded #view-learn .step-btn { font-size: 20px; gap: 10px; }
+.embedded #view-learn .step-btn .mono { display: none; }
+.embedded #view-learn .step-btn .bar { height: 6px; }
+.embedded #view-learn .steps { gap: 10px; }
+.embedded #view-learn .chapter { gap: 28px; }
+.embedded #view-learn .chapter h2 { font-size: 46px; line-height: 1.08; }
+.embedded #view-learn .readout { padding: 8px 22px; }
+.embedded #view-learn .readout-row { padding: 14px 0; font-size: 26px; }
+.embedded #view-learn .readout .route { font-size: 26px; }
+.embedded #view-learn .big { font-size: 64px; }
+.embedded #view-learn .verdict { font-size: 25px; line-height: 1.35; padding: 16px 20px; }
+.embedded #view-learn .roulette-box { gap: 20px; }
+.embedded #view-learn .rtrack { height: 72px; border-radius: 14px; }
+.embedded #view-learn .rs { font-size: 24px; }
+.embedded #view-learn .needle { top: -8px; height: 88px; width: 3px; }
+.embedded #view-learn .rscale { font-size: 20px; margin-top: 6px; }
+.embedded #view-learn #c2RollText { font-size: 25px; color: var(--ink-2); flex-basis: 100%; }
+.embedded #view-learn .actions .mono.small { font-size: 22px; }
+.embedded #view-learn .ants { font-size: 24px; }
+.embedded #view-learn .ants th { font-size: 18px; padding-bottom: 10px; }
+.embedded #view-learn .ants td { padding: 14px 8px; }
+.embedded #view-learn .ants .path { font-size: 23px; }
+.embedded #view-learn .ants .len { font-size: 28px; }
+.embedded #view-learn .sw { width: 16px; height: 16px; }
+.embedded #view-learn .stages { gap: 24px; }
+.embedded #view-learn .stages li { font-size: 32px; grid-template-columns: 22px 1fr; gap: 18px; }
+.embedded #view-learn .stages li .dot { width: 20px; height: 20px; margin-top: 11px; border-width: 3px; }
+.embedded #view-learn .stat-line { gap: 64px; }
+.embedded #view-learn .stat-line .small { font-size: 22px; }
+.embedded #view-learn .stat-line .big { font-size: 72px; }
+.embedded #view-learn .chart-box { height: 280px; }
+.embedded #view-learn .c5-legend { font-size: 19px; gap: 8px 22px; margin-top: -10px; }
+.embedded #view-learn .c5-legend .sw { width: 24px; }
 /* ---------- Lab: map on the left, one rail of cards on the right ---------- */
 [hidden] { display: none !important; }
 .app:has(#view-lab:not([hidden])) { height: 100%; }
@@ -622,13 +676,14 @@ textarea.field { font-family: var(--font-mono); font-size: 13px; line-height: 1.
       <a class="mode" id="mode-learn" href="#learn" data-icon="book-open">Learn</a>
       <a class="mode" id="mode-lab" href="#lab" data-icon="flask-conical">Lab</a>
     </nav>
+    <button type="button" class="explain-btn" id="explainBtn" aria-pressed="false" title="Show or hide the explanations (E)" data-icon="info">Explain</button>
   </header>
   <main class="view" id="view-learn" aria-label="Learn how ant colony optimization works">
     <div class="learn">
       <div class="learn-map">
         <div class="map-sheet">
           <canvas id="learnMap" aria-label="Map of the six cities"></canvas>
-          <div class="map-note" id="learnNote" aria-live="polite"></div>
+          <div class="map-note ex" id="learnNote" aria-live="polite"></div>
         </div>
       </div>
 
@@ -643,9 +698,9 @@ textarea.field { font-family: var(--font-mono); font-size: 13px; line-height: 1.
 
         <!-- 1 ─────────────────────────────────────────── -->
         <article class="chapter" data-ch="1">
-          <p class="eyebrow">Chapter 1 of 5</p>
+          <p class="eyebrow ex">Chapter 1 of 5</p>
           <h2>Find the shortest round trip</h2>
-          <p>A salesperson has to visit each of these six cities once and then come home. In which order is the trip shortest?</p>
+          <p class="ex">A salesperson has to visit each of these six cities once and then come home. In which order is the trip shortest?</p>
           <p class="howto">Click the cities on the map in the order you would visit them.</p>
           <div class="readout">
             <div class="readout-row"><span class="muted">Your route</span><span class="mono route" id="c1Route">Pick a first city</span></div>
@@ -657,20 +712,20 @@ textarea.field { font-family: var(--font-mono); font-size: 13px; line-height: 1.
             <button type="button" class="btn" id="c1Clear">Clear</button>
             <button type="button" class="btn ghost" id="c1Best">Show the shortest</button>
           </div>
-          <p class="aside" id="c1Aside"></p>
+          <p class="aside ex" id="c1Aside"></p>
         </article>
 
         <!-- 2 ─────────────────────────────────────────── -->
         <article class="chapter" data-ch="2" hidden>
-          <p class="eyebrow">Chapter 2 of 5</p>
+          <p class="eyebrow ex">Chapter 2 of 5</p>
           <h2>How one ant picks the next city</h2>
-          <p>An ant standing at <b>A</b> does not plan the whole trip. It picks the next city at random, but not evenly: close cities and cities with a strong pheromone trail are more likely.</p>
+          <p class="ex">An ant standing at <b>A</b> does not plan the whole trip. It picks the next city at random, but not evenly: close cities and cities with a strong pheromone trail are more likely.</p>
           <div class="formula" aria-label="probability formula">
             <span>p<sub>ij</sub> =</span>
             <span class="frac"><span>τ<sub>ij</sub><sup>α</sup> · η<sub>ij</sub><sup>β</sup></span><span>Σ<sub>l</sub> τ<sub>il</sub><sup>α</sup> · η<sub>il</sub><sup>β</sup></span></span>
             <span class="muted">with η<sub>ij</sub> = 1 / d<sub>ij</sub></span>
           </div>
-          <p class="small muted"><b>τ</b> is the pheromone on the edge, <b>η</b> is how close the city is. <b>α</b> and <b>β</b> say how much the ant trusts each one.</p>
+          <p class="small muted ex"><b>τ</b> is the pheromone on the edge, <b>η</b> is how close the city is. <b>α</b> and <b>β</b> say how much the ant trusts each one.</p>
           <div class="knobs">
             <div class="knob"><label for="c2Alpha"><b>α</b>trust in pheromone</label><output id="c2AlphaOut" for="c2Alpha">1.0</output><input type="range" id="c2Alpha" min="0" max="5" step="0.1" value="1"></div>
             <div class="knob"><label for="c2Beta"><b>β</b>trust in distance</label><output id="c2BetaOut" for="c2Beta">2.0</output><input type="range" id="c2Beta" min="0" max="5" step="0.1" value="2"></div>
@@ -679,7 +734,7 @@ textarea.field { font-family: var(--font-mono); font-size: 13px; line-height: 1.
           <div class="table-wrap">
             <table class="odds" id="c2Table"></table>
           </div>
-          <p class="note" id="c2Note"></p>
+          <p class="note ex" id="c2Note"></p>
           <div class="roulette-box">
             <div class="roulette" id="c2Wheel" aria-hidden="true"><div class="needle" id="c2Needle"></div></div>
             <div class="actions">
@@ -691,9 +746,9 @@ textarea.field { font-family: var(--font-mono); font-size: 13px; line-height: 1.
 
         <!-- 3 ─────────────────────────────────────────── -->
         <article class="chapter" data-ch="3" hidden>
-          <p class="eyebrow">Chapter 3 of 5</p>
+          <p class="eyebrow ex">Chapter 3 of 5</p>
           <h2>A colony builds tours</h2>
-          <p>Now three ants start at <b>A</b>, <b>C</b> and <b>E</b>. At every move each ant uses the rule from chapter 2 to pick a city it has not visited yet. After the last city it walks home.</p>
+          <p class="ex">Now three ants start at <b>A</b>, <b>C</b> and <b>E</b>. At every move each ant uses the rule from chapter 2 to pick a city it has not visited yet. After the last city it walks home.</p>
           <div class="actions">
             <button type="button" class="btn primary" id="c3Play"></button>
             <button type="button" class="btn" id="c3Next"></button>
@@ -706,29 +761,29 @@ textarea.field { font-family: var(--font-mono); font-size: 13px; line-height: 1.
 
         <!-- 4 ─────────────────────────────────────────── -->
         <article class="chapter" data-ch="4" hidden>
-          <p class="eyebrow">Chapter 4 of 5</p>
+          <p class="eyebrow ex">Chapter 4 of 5</p>
           <h2>Trails fade, good tours get stronger</h2>
-          <p>After the round, the pheromone changes in two steps. First every trail <b>evaporates</b> a little. Then each ant <b>deposits</b> pheromone on the edges it used: Q / L, so a shorter tour leaves more.</p>
+          <p class="ex">After the round, the pheromone changes in two steps. First every trail <b>evaporates</b> a little. Then each ant <b>deposits</b> pheromone on the edges it used: Q / L, so a shorter tour leaves more.</p>
           <div class="formula"><span>τ<sub>ij</sub> ← (1 − ρ) · τ<sub>ij</sub> + Σ<sub>k</sub> Q / L<sub>k</sub></span></div>
           <div class="knob"><label for="c4Rho"><b>ρ</b>evaporation rate</label><output id="c4RhoOut" for="c4Rho">0.50</output><input type="range" id="c4Rho" min="0.05" max="0.95" step="0.05" value="0.5"></div>
           <ol class="stages">
-            <li id="c4s0"><span class="dot"></span><div><b>Start</b><span class="muted">Every edge has τ = 1.</span></div></li>
-            <li id="c4s1"><span class="dot"></span><div><b>Evaporate</b><span class="muted" id="c4EvapText"></span></div></li>
-            <li id="c4s2"><span class="dot"></span><div><b>Deposit</b><span class="muted" id="c4DepText"></span></div></li>
+            <li id="c4s0"><span class="dot"></span><div><b>Start</b><span class="muted ex">Every edge has τ = 1.</span></div></li>
+            <li id="c4s1"><span class="dot"></span><div><b>Evaporate</b><span class="muted ex" id="c4EvapText"></span></div></li>
+            <li id="c4s2"><span class="dot"></span><div><b>Deposit</b><span class="muted ex" id="c4DepText"></span></div></li>
           </ol>
           <div class="actions">
             <button type="button" class="btn primary" id="c4Go"></button>
             <button type="button" class="btn ghost icon" id="c4Reset" title="Back to the start" aria-label="Back to the start"></button>
           </div>
-          <div class="worked" id="c4Worked"></div>
-          <div id="c4Top"></div>
+          <div class="worked ex" id="c4Worked"></div>
+          <div class="ex" id="c4Top"></div>
         </article>
 
         <!-- 5 ─────────────────────────────────────────── -->
         <article class="chapter" data-ch="5" hidden>
-          <p class="eyebrow">Chapter 5 of 5</p>
+          <p class="eyebrow ex">Chapter 5 of 5</p>
           <h2>Repeat, and keep the best tour</h2>
-          <p>That was one iteration. Now the colony repeats it: build tours, evaporate, deposit. Edges of short tours keep getting stronger, so later ants follow them more often. The colony also remembers the best tour it has seen.</p>
+          <p class="ex">That was one iteration. Now the colony repeats it: build tours, evaporate, deposit. Edges of short tours keep getting stronger, so later ants follow them more often. The colony also remembers the best tour it has seen.</p>
           <div class="actions">
             <button type="button" class="btn primary" id="c5Play"></button>
             <button type="button" class="btn ghost icon" id="c5Reset" title="Restart from iteration 1" aria-label="Restart from iteration 1"></button>
@@ -750,7 +805,7 @@ textarea.field { font-family: var(--font-mono); font-size: 13px; line-height: 1.
 
         <div class="ch-nav">
           <button type="button" class="btn ghost" id="chPrev"></button>
-          <span class="small muted hint">Use <kbd>←</kbd> <kbd>→</kbd> to move between chapters</span>
+          <span class="small muted hint ex">Use <kbd>←</kbd> <kbd>→</kbd> to move between chapters</span>
           <button type="button" class="btn" id="chNext"></button>
         </div>
       </div>
@@ -781,7 +836,7 @@ textarea.field { font-family: var(--font-mono); font-size: 13px; line-height: 1.
             <button type="button" data-m="move" aria-pressed="false">Move</button>
             <button type="button" data-m="del" aria-pressed="false">Delete</button>
           </div>
-          <span class="edit-hint" id="labEditHint">Click empty ground to add a city.</span>
+          <span class="edit-hint ex" id="labEditHint">Click empty ground to add a city.</span>
           <button class="btn ghost sm" id="labImportOpen" type="button">Import / export</button>
           <button class="btn primary sm" id="labEditDone" type="button">Done</button>
         </div>
@@ -805,7 +860,7 @@ textarea.field { font-family: var(--font-mono); font-size: 13px; line-height: 1.
           <button type="button" data-l="opt" aria-pressed="false" title="Show or hide the optimal tour"><i class="lg-optt"></i>optimum</button>
           <span id="labLegendRound" hidden><i class="lg-round"></i>best of this round</span>
         </div>
-        <p class="map-tip" id="labTip">Tip: click a city to see where an ant there would go next.</p>
+        <p class="map-tip ex" id="labTip">Tip: click a city to see where an ant there would go next.</p>
       </section>
 
       <aside class="rail" aria-label="Run and settings">
@@ -823,7 +878,7 @@ textarea.field { font-family: var(--font-mono); font-size: 13px; line-height: 1.
             <li data-p="evaporate"><span>Evaporate</span><i></i></li>
             <li data-p="deposit"><span>Deposit</span><i></i></li>
           </ol>
-          <p class="caption" id="labCaption" aria-live="polite"></p>
+          <p class="caption ex" id="labCaption" aria-live="polite"></p>
           <div class="run-row">
             <button class="btn icon" id="labReset" type="button" title="Start over (R)" aria-label="Start over" data-icon="rotate-ccw"></button>
             <button class="btn primary lg play" id="labPlay" type="button" title="Play or pause (Space)"></button>
@@ -866,19 +921,19 @@ textarea.field { font-family: var(--font-mono); font-size: 13px; line-height: 1.
               <button type="button" data-v="ACS" aria-pressed="false" title="Ant Colony System (Dorigo & Gambardella 1997)">ACS</button>
             </div>
           </div>
-          <p class="muted small" id="labVariantNote"></p>
+          <p class="muted small ex" id="labVariantNote"></p>
           <div class="knobs" id="labKnobs"></div>
           <details class="more" id="labMore">
             <summary>More settings</summary>
             <div class="knobs" id="labKnobsMore"></div>
           </details>
           <div class="params-foot">
-            <span class="muted small" id="labDefaultsNote"></span>
+            <span class="muted small ex" id="labDefaultsNote"></span>
             <button class="btn ghost sm" id="labDefaults" type="button" data-icon="rotate-ccw" title="Set every parameter back to its default">Reset to defaults</button>
           </div>
           <div class="tune">
             <div class="tune-head">
-              <div><h3>Auto-tune</h3><p class="muted small" id="labTuneNote">Tries 24 settings of α, β and ρ on this graph and keeps the best.</p></div>
+              <div><h3>Auto-tune</h3><p class="muted small ex" id="labTuneNote">Tries 24 settings of α, β and ρ on this graph and keeps the best.</p></div>
               <button class="btn" id="labTune" type="button" data-icon="gauge">Tune</button>
             </div>
             <div class="tune-bar" id="labTuneBar" hidden><i></i></div>
@@ -888,7 +943,7 @@ textarea.field { font-family: var(--font-mono); font-size: 13px; line-height: 1.
 
         <section class="card compare" aria-label="Compare Ant System and ACS">
           <div class="tune-head">
-            <div><h3>AS vs ACS</h3><p class="muted small" id="labCmpNote"></p></div>
+            <div><h3>AS vs ACS</h3><p class="muted small ex" id="labCmpNote"></p></div>
             <button class="btn" id="labCmp" type="button" data-icon="gauge">Compare</button>
           </div>
           <div class="cmp-seeds">
@@ -1241,9 +1296,12 @@ const DEFAULTS = {
    All positions in `layers` are DATA coordinates (the same units as the city coordinates); y points up. */
 const MapView = (() => {
   const css = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  const PILL_FONT = '600 11.5px "JetBrains Mono", ui-monospace, monospace';
-  const LABEL_FONT = '700 12.5px "JetBrains Mono", ui-monospace, monospace';
-  const TICK_FONT = '500 10px "JetBrains Mono", ui-monospace, monospace';
+  // Z: label and city scale; 1.8 inside the slide deck so the map reads from across the room
+  const Z = () => document.documentElement.classList.contains('embedded') ? 1.8 : 1;
+  const mono = (w, px) => `${w} ${px * Z()}px "JetBrains Mono", ui-monospace, monospace`;
+  let PILL_FONT, LABEL_FONT, TICK_FONT;
+  const fonts = () => { PILL_FONT = mono(600, 11.5); LABEL_FONT = mono(700, 12.5); TICK_FONT = mono(500, 10); };
+  fonts();
 
   function niceStep(span, target) {
     const raw = span / target, mag = Math.pow(10, Math.floor(Math.log10(raw)));
@@ -1318,7 +1376,7 @@ const MapView = (() => {
     }
     lerp(i, j, t) { const a = this.coords[i], b = this.coords[j]; return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]; }
     heading(i, j) { const [x1, y1] = this.toScreen(this.coords[i]), [x2, y2] = this.toScreen(this.coords[j]); return Math.atan2(y2 - y1, x2 - x1); }
-    cityRadius() { const n = this.coords.length; return n <= 10 ? 9 : n <= 25 ? 7 : 5.5; }
+    cityRadius() { const n = this.coords.length; return (n <= 10 ? 9 : n <= 25 ? 7 : 5.5) * Z(); }
 
     draw() {
       const ctx = this.ctx, L = this.layers, c = this.c, n = this.coords.length;
@@ -1393,7 +1451,7 @@ const MapView = (() => {
         ctx.setLineDash([]); ctx.globalAlpha = 1;
       }
       // 7. cities (and the rectangles labels must avoid)
-      const R = this.cityRadius(), boxes = [];
+      fonts(); const z = Z(), R = this.cityRadius(), boxes = [];
       let cx = 0, cy = 0; for (let i = 0; i < n; i++) { const [x, y] = S(i); cx += x / n; cy += y / n; }
       for (let i = 0; i < n; i++) {
         const [x, y] = S(i), mk = L.marks && L.marks[i];
@@ -1411,18 +1469,18 @@ const MapView = (() => {
         for (let i = 0; i < n; i++) {
           const [x, y] = S(i), mk = L.marks && L.marks[i];
           let dx = x - cx, dy = y - cy; const dl = Math.hypot(dx, dy) || 1; dx /= dl; dy /= dl;
-          const text = this.labels[i], tw = ctx.measureText(text).width, off = R + 10;
+          const text = this.labels[i], tw = ctx.measureText(text).width, off = R + 10 * z;
           let lx = x + dx * off, ly = y + dy * off;
-          let box = { x: lx - tw / 2 - 3, y: ly - 8, w: tw + 6, h: 16 };
+          let box = { x: lx - tw / 2 - 3, y: ly - 8 * z, w: tw + 6, h: 16 * z };
           for (const ang of [0, 0.7, -0.7, 1.4, -1.4, Math.PI]) {
             const ca = Math.cos(ang), sa = Math.sin(ang), ux = dx * ca - dy * sa, uy = dx * sa + dy * ca;
-            const b2 = { x: x + ux * off - tw / 2 - 3, y: y + uy * off - 8, w: tw + 6, h: 16 };
+            const b2 = { x: x + ux * off - tw / 2 - 3, y: y + uy * off - 8 * z, w: tw + 6, h: 16 * z };
             if (!boxes.some(b => overlap(b, b2, 1))) { lx = x + ux * off; ly = y + uy * off; box = b2; break; }
           }
           boxes.push(box);
           ctx.lineWidth = 4; ctx.strokeStyle = c['--surface']; ctx.lineJoin = 'round'; ctx.strokeText(text, lx, ly);
           ctx.fillStyle = mk && mk.label ? this.col(mk.label) : c['--ink']; ctx.fillText(text, lx, ly);
-          if (mk && mk.text) { ctx.font = TICK_FONT; ctx.fillStyle = this.col(mk.ring || '--ink-3'); ctx.fillText(mk.text, lx, ly + 13); ctx.font = LABEL_FONT; }
+          if (mk && mk.text) { ctx.font = TICK_FONT; ctx.fillStyle = this.col(mk.ring || '--ink-3'); ctx.fillText(mk.text, lx, ly + 13 * z); ctx.font = LABEL_FONT; }
         }
       }
       // 10. edge labels and candidate pills (placed last, clear of cities and labels)
@@ -1439,12 +1497,12 @@ const MapView = (() => {
     }
     pillOnEdge(i, j, text, st, boxes, force) {
       const ctx = this.ctx; ctx.font = PILL_FONT; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      const tw = ctx.measureText(text).width, w = tw + 12, h = 19;
+      const z = Z(), tw = ctx.measureText(text).width, w = tw + 12 * z, h = 19 * z;
       const [a, b] = this.toScreen(this.coords[i]), [d, e] = this.toScreen(this.coords[j]);
       const len = Math.hypot(d - a, e - b) || 1, px = -(e - b) / len, py = (d - a) / len;
       const spots = [];
       for (const t of [0.5, 0.4, 0.6, 0.3, 0.7]) spots.push([a + (d - a) * t, b + (e - b) * t]);
-      for (const o of [14, -14, 26, -26]) spots.push([a + (d - a) * .5 + px * o, b + (e - b) * .5 + py * o]);
+      for (const o of [14, -14, 26, -26]) spots.push([a + (d - a) * .5 + px * o * z, b + (e - b) * .5 + py * o * z]);
       let pick = null;
       for (const [x, y] of spots) { const bx = { x: x - w / 2, y: y - h / 2, w, h }; if (!boxes.some(q => overlap(q, bx))) { pick = bx; break; } }
       if (!pick) { if (!force) return; const [x, y] = spots[0]; pick = { x: x - w / 2, y: y - h / 2, w, h }; }
@@ -1509,6 +1567,7 @@ const UI = (() => {
     'play': '<polygon points="6 3 20 12 6 21 6 3"/>',
     'pause': '<rect x="14" y="4" width="4" height="16" rx="1"/><rect x="6" y="4" width="4" height="16" rx="1"/>',
     'skip-forward': '<polygon points="5 4 15 12 5 20 5 4"/><line x1="19" x2="19" y1="5" y2="19"/>',
+    info: '<circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/>',
     'rotate-ccw': '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
     'chevron-left': '<path d="m15 18-6-6 6-6"/>',
     'chevron-right': '<path d="m9 18 6-6-6-6"/>',
@@ -1758,8 +1817,8 @@ const Learn = (() => {
       const L = lenDrawn(c), diff = L - OPT.len;
       v.classList.toggle('ok', diff === 0);
       v.innerHTML = `<b>Your tour: ${L}.</b> Shortest possible: <b>${OPT.len}</b>. ` + (diff === 0
-        ? 'You found it. Next, see how ants find it without trying every order.'
-        : `Yours is ${diff} longer (+${Math.round(diff / OPT.len * 100)}%). Undo a few cities and try again, or show the shortest.`);
+        ? '<span class="ex">You found it. Next, see how ants find it without trying every order.</span>'
+        : `<span class="ex">Yours is ${diff} longer (+${Math.round(diff / OPT.len * 100)}%). Undo a few cities and try again, or show the shortest.</span>`);
       show(v, true);
     } else v.hidden = true;
     $('c1Undo').disabled = !t.length; $('c1Clear').disabled = !t.length;
@@ -1880,7 +1939,7 @@ const Learn = (() => {
   function resetRoll2() {
     const c = S.c2; c.rolled = null; c.walked = false;
     const nd = $('c2Needle'); if (nd) { nd.style.opacity = '0'; nd.style.left = '0%'; }
-    $('c2RollText').textContent = 'The ant draws a random number r between 0 and 1 and goes where it lands.';
+    $('c2RollText').innerHTML = '<span class="ex">The ant draws a random number r between 0 and 1 and goes where it lands.</span>';
     label($('c2Roll'), 'dices', 'Let the ant choose');
     emph(false);
   }
@@ -1898,7 +1957,7 @@ const Learn = (() => {
     c.rolled = ch; update2();
     let lo = 0; for (const it of o.items) { if (it.to === ch) break; lo += it.p; }
     const hiP = lo + o.items.find(x => x.to === ch).p;
-    $('c2RollText').innerHTML = `r = <b>${r.toFixed(3)}</b> lands in ${NAME[ch]}'s slice (${lo.toFixed(3)} to ${hiP.toFixed(3)}), so the ant walks to <b>${NAME[ch]}</b>.`;
+    $('c2RollText').innerHTML = `r = <b>${r.toFixed(3)}</b><span class="ex"> lands in ${NAME[ch]}'s slice (${lo.toFixed(3)} to ${hiP.toFixed(3)}), so the ant walks to</span> → <b>${NAME[ch]}</b><span class="ex">.</span>`;
     if (!await wait(350)) return;
     const head = map.heading(0, ch);
     if (!await tween(900, t => {
@@ -2112,9 +2171,9 @@ const Learn = (() => {
     label($('c5Play'), col.done ? 'rotate-ccw' : c.playing ? 'pause' : 'play', col.done ? 'Run again' : c.playing ? 'Pause' : col.iter ? 'Resume' : 'Play 20 iterations');
     if (col.done) {
       $('c5Result').innerHTML = col.bestLen === OPT.len
-        ? `Found the optimum (<b>${OPT.len}</b>) at iteration ${col.bestIter}. Nearest neighbour gets ${NNL}; a random tour ${UI.len(RND.mean)} on average.` +
-          (Math.max(...col.hIterBest.slice(col.bestIter)) > OPT.len ? ` Some later rounds were worse (the grey dots), but the best tour is never lost.` : '')
-        : `Best found: <b>${UI.len(col.bestLen)}</b> (the optimum is ${OPT.len}). Nearest neighbour gets ${NNL}; a random tour ${UI.len(RND.mean)} on average.`;
+        ? `Found the optimum (<b>${OPT.len}</b>) at iteration ${col.bestIter}.<span class="ex"> Nearest neighbour gets ${NNL}; a random tour ${UI.len(RND.mean)} on average.` +
+          (Math.max(...col.hIterBest.slice(col.bestIter)) > OPT.len ? ` Some later rounds were worse (the grey dots), but the best tour is never lost.` : '') + '</span>'
+        : `Best found: <b>${UI.len(col.bestLen)}</b> (optimum ${OPT.len}).<span class="ex"> Nearest neighbour gets ${NNL}; a random tour ${UI.len(RND.mean)} on average.</span>`;
       show($('c5Done'), true);
       note(`Dashed: the best tour, ${arrow(col.bestTour)} → ${NAME[col.bestTour[0]]} (${UI.len(col.bestLen)}). Orange: where the trails are now.`);
     }
@@ -3217,6 +3276,22 @@ const Lab = (() => {
   // ?theme=light|dark forces a colour scheme (the slide deck embeds the page with ?theme=light)
   const theme = new URLSearchParams(location.search).get('theme');
   if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+  const embedded = window.parent !== window;
+  if (embedded) document.documentElement.classList.add('embedded');
+  // Explain: shows every explanation paragraph (.ex); off by default, remembered per browser; never inside the deck
+  const exBtn = document.getElementById('explainBtn');
+  const setExplain = (on) => {
+    document.documentElement.classList.toggle('explain', on); exBtn.setAttribute('aria-pressed', String(on));
+    try { localStorage.setItem('aco-explain', on ? '1' : '0'); } catch (e) {}
+  };
+  let saved = null; try { saved = localStorage.getItem('aco-explain'); } catch (e) {}
+  if (!embedded) setExplain(saved === '1');
+  exBtn.addEventListener('click', () => setExplain(!document.documentElement.classList.contains('explain')));
+  addEventListener('keydown', (e) => {
+    if (embedded || e.ctrlKey || e.metaKey || e.altKey || (e.key !== 'e' && e.key !== 'E')) return;
+    if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+    setExplain(!document.documentElement.classList.contains('explain'));
+  });
   const views = { learn: Learn, lab: Lab };
   const inited = {};
   function route() {
@@ -3236,8 +3311,7 @@ const Lab = (() => {
   route();
   // Embedded in the slide deck (slides/index.html): the deck's next/previous keys step through the
   // Learn chapters; past chapter 5 or before chapter 1 the deck moves to the next/previous slide.
-  if (window.parent !== window) {
-    document.documentElement.classList.add('embedded');
+  if (embedded) {
     if (location.hash === '#lab') location.hash = '#learn';
     const L = () => window.__learn;
     const toDeck = (key) => window.parent.postMessage({ type: 'aco-deck-key', key }, '*');
